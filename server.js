@@ -4,27 +4,29 @@ const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
 const { Pool } = require('pg');
 const { verificarAutenticacion } = require('./middleware/auth');
-const PORT = process.env.PORT || 3000;
 
 dotenv.config();
 
 // =====================================================
-// CONFIGURACIÓN DE BASE DE DATOS
+// CONFIGURACIÓN DE BASE DE DATOS (CORREGIDA)
 // =====================================================
 let poolConfig;
 
-// Si existe DATABASE_URL 
 if (process.env.DATABASE_URL) {
+    // Producción: Neon
+    console.log('🔄 Configurando conexión para Neon...');
     poolConfig = {
         connectionString: process.env.DATABASE_URL,
         ssl: {
-            rejectUnauthorized: false // Necesario para Render
+            rejectUnauthorized: false
         },
         max: 20,
         idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 10000, // 10 segundos máximo para conectar
     };
 } else {
-    // Configuración local
+    // Desarrollo local
+    console.log('🔄 Configurando conexión para PostgreSQL local...');
     poolConfig = {
         host: process.env.DB_HOST || 'localhost',
         port: process.env.DB_PORT || 5432,
@@ -38,15 +40,26 @@ if (process.env.DATABASE_URL) {
 
 const pool = new Pool(poolConfig);
 
-pool.connect((err, client, release) => {
-    if (err) {
-        console.error('❌ Error conectando a PostgreSQL:', err.stack);
-    } else {
+// =====================================================
+// PROBAR CONEXIÓN (sin detener la app si falla)
+// =====================================================
+async function probarConexion() {
+    try {
+        const client = await pool.connect();
         console.log('✅ Conectado a PostgreSQL correctamente');
-        release();
+        client.release();
+        return true;
+    } catch (err) {
+        console.error('❌ Error conectando a PostgreSQL:', err.message);
+        console.error('   La aplicación iniciará pero la base de datos no estará disponible.');
+        console.error('   Verifica tu DATABASE_URL en las variables de entorno de Render.');
+        return false;
     }
-});
+}
 
+// =====================================================
+// CONFIGURACIÓN DE EXPRESS
+// =====================================================
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -58,90 +71,57 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Logging de peticiones
 app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    console.log(`${req.method} ${req.url}`);
+    next();
+});
+
+// Middleware para verificar conexión a BD antes de rutas que la necesiten
+app.use((req, res, next) => {
+    // Adjuntar pool a req.locals para que las rutas puedan usarlo
+    req.locals = { pool };
     next();
 });
 
 app.locals.pool = pool;
 
 // =====================================================
-// CONFIGURACIÓN PARA NEON.TECH (si se detecta DATABASE_URL) y para Render (SSL)
-// =====================================================
-
-const pool = new Pool(
-  process.env.DATABASE_URL
-    ? {
-        connectionString: process.env.DATABASE_URL,
-        ssl: {
-          rejectUnauthorized: false, // Necesario para Neon
-        },
-      }
-    : {
-        host: process.env.DB_HOST,
-        port: process.env.DB_PORT,
-        user: process.env.DB_USER,
-        password: process.env.DB_PASSWORD,
-        database: process.env.DB_NAME,
-        max: 20,
-        idleTimeoutMillis: 30000,
-      }
-);
-
-// =====================================================
-// RUTA DE SALUD
-// =====================================================
-app.get('/health', async (req, res) => {
-    try {
-        await pool.query('SELECT 1');
-        res.status(200).json({ 
-            status: 'ok', 
-            database: 'connected',
-            timestamp: new Date().toISOString()
-        });
-    } catch (error) {
-        res.status(500).json({ 
-            status: 'error', 
-            database: 'disconnected',
-            error: error.message 
-        });
-    }
-});
-
-// =====================================================
 // RUTAS PÚBLICAS
 // =====================================================
-const authRoutes = require('./routes/auth')(pool);
-app.use('/api/auth', authRoutes);
+try {
+    const authRoutes = require('./routes/auth')(pool);
+    app.use('/api/auth', authRoutes);
+    console.log('✅ Rutas de autenticación cargadas');
+} catch (error) {
+    console.error('❌ Error cargando rutas de autenticación:', error.message);
+}
 
 // =====================================================
 // RUTAS PROTEGIDAS
 // =====================================================
-const habitantesRoutes = require('./routes/habitantes')(pool);
-const viviendasRoutes = require('./routes/viviendas')(pool);
-const serviciosRoutes = require('./routes/servicios')(pool);
-const solicitudesRoutes = require('./routes/solicitudes')(pool);
-const notificacionesRoutes = require('./routes/notificaciones')(pool);
-const exportarRoutes = require('./routes/exportar')(pool);
-const bitacoraRoutes = require('./routes/bitacora')(pool);
+try {
+    const habitantesRoutes = require('./routes/habitantes')(pool);
+    const viviendasRoutes = require('./routes/viviendas')(pool);
+    const serviciosRoutes = require('./routes/servicios')(pool);
+    const solicitudesRoutes = require('./routes/solicitudes')(pool);
+    const notificacionesRoutes = require('./routes/notificaciones')(pool);
+    const exportarRoutes = require('./routes/exportar')(pool);
+    const bitacoraRoutes = require('./routes/bitacora')(pool);
 
-app.use('/api/habitantes', verificarAutenticacion, habitantesRoutes);
-app.use('/api/viviendas', verificarAutenticacion, viviendasRoutes);
-app.use('/api/servicios', verificarAutenticacion, serviciosRoutes);
-app.use('/api/solicitudes', verificarAutenticacion, solicitudesRoutes);
-app.use('/api/notificaciones', verificarAutenticacion, notificacionesRoutes);
-app.use('/api/exportar', verificarAutenticacion, exportarRoutes);
-app.use('/api/bitacora', verificarAutenticacion, bitacoraRoutes);
+    app.use('/api/habitantes', verificarAutenticacion, habitantesRoutes);
+    app.use('/api/viviendas', verificarAutenticacion, viviendasRoutes);
+    app.use('/api/servicios', verificarAutenticacion, serviciosRoutes);
+    app.use('/api/solicitudes', verificarAutenticacion, solicitudesRoutes);
+    app.use('/api/notificaciones', verificarAutenticacion, notificacionesRoutes);
+    app.use('/api/exportar', verificarAutenticacion, exportarRoutes);
+    app.use('/api/bitacora', verificarAutenticacion, bitacoraRoutes);
+    console.log('✅ Rutas protegidas cargadas');
+} catch (error) {
+    console.error('❌ Error cargando rutas protegidas:', error.message);
+}
 
-// Ruta para administración de usuarios (solo admin)
-app.get('/admin/usuarios', verificarAutenticacion, (req, res) => {
-    if (req.usuario && req.usuario.nivel_rol >= 3) {
-        res.sendFile(path.join(__dirname, 'views', 'admin_usuarios.html'));
-    } else {
-        res.status(403).send('Acceso denegado');
-    }
-});
-
-// Estadísticas
+// =====================================================
+// RUTA DE ESTADÍSTICAS (con manejo de errores)
+// =====================================================
 app.get('/api/estadisticas', verificarAutenticacion, async (req, res) => {
     try {
         const totalViviendas = await pool.query('SELECT COUNT(*) FROM viviendas');
@@ -156,30 +136,92 @@ app.get('/api/estadisticas', verificarAutenticacion, async (req, res) => {
             adultos_mayores: parseInt(adultosMayores.rows[0].count)
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Error al obtener estadísticas' });
+        console.error('Error en estadísticas:', error);
+        res.status(500).json({ 
+            error: 'Error al obtener estadísticas',
+            message: 'La base de datos no está disponible temporalmente'
+        });
     }
 });
 
-// Servir HTML
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'views', 'index.html')));
-app.get('/habitantes', (req, res) => res.sendFile(path.join(__dirname, 'views', 'habitantes.html')));
-app.get('/viviendas', (req, res) => res.sendFile(path.join(__dirname, 'views', 'viviendas.html')));
-app.get('/servicios', (req, res) => res.sendFile(path.join(__dirname, 'views', 'servicios.html')));
-app.get('/solicitudes', (req, res) => res.sendFile(path.join(__dirname, 'views', 'solicitudes.html')));
-app.get('/notificaciones', (req, res) => res.sendFile(path.join(__dirname, 'views', 'notificaciones.html')));
-app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'views', 'login.html')));
-app.get('/perfil', (req, res) => res.sendFile(path.join(__dirname, 'views', 'perfil.html')));
-app.get('/bitacora', verificarAutenticacion, (req, res) => {
-    if (req.usuario && req.usuario.nivel_rol >= 3) {
-        res.sendFile(path.join(__dirname, 'views', 'bitacora.html'));
+// =====================================================
+// RUTAS PARA SERVIR HTML
+// =====================================================
+const viewsDir = path.join(__dirname, 'views');
+
+// Verificar que la carpeta views existe
+try {
+    const fs = require('fs');
+    if (!fs.existsSync(viewsDir)) {
+        console.error('⚠️  La carpeta "views" no existe. Creándola...');
+        fs.mkdirSync(viewsDir, { recursive: true });
+    }
+} catch (err) {
+    console.error('Error verificando carpeta views:', err.message);
+}
+
+// Ruta para administración de usuarios (solo admin)
+app.get('/admin/usuarios', (req, res) => {
+    const filePath = path.join(viewsDir, 'admin_usuarios.html');
+    if (require('fs').existsSync(filePath)) {
+        res.sendFile(filePath);
     } else {
-        res.status(403).send('Acceso denegado');
+        res.status(404).send('Página no encontrada');
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
-    console.log(`📊 Entorno: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`🔗 URL: http://localhost:${PORT}`);
+// Servir páginas HTML
+const paginas = [
+    '', 'habitantes', 'viviendas', 'servicios', 
+    'solicitudes', 'notificaciones', 'login', 'perfil', 'bitacora'
+];
+
+paginas.forEach(pagina => {
+    const ruta = pagina === '' ? '/' : `/${pagina}`;
+    const archivo = pagina === '' ? 'index.html' : `${pagina}.html`;
+    
+    app.get(ruta, (req, res) => {
+        const filePath = path.join(viewsDir, archivo);
+        if (require('fs').existsSync(filePath)) {
+            res.sendFile(filePath);
+        } else {
+            res.status(404).send(`Página ${archivo} no encontrada`);
+        }
+    });
+});
+
+// =====================================================
+// MANEJO DE ERRORES GLOBAL
+// =====================================================
+app.use((err, req, res, next) => {
+    console.error('Error no manejado:', err);
+    res.status(500).json({ 
+        error: 'Error interno del servidor',
+        message: process.env.NODE_ENV === 'production' ? 'Algo salió mal' : err.message
+    });
+});
+
+// =====================================================
+// INICIAR SERVIDOR
+// =====================================================
+async function iniciarServidor() {
+    // Probar conexión a la base de datos (no bloquea el inicio)
+    const dbConectada = await probarConexion();
+    
+    app.listen(PORT, () => {
+        console.log(`
+    🚀 ========================================
+    ✅ Sistema Censo La Astillera corriendo!
+    📡 Servidor: http://localhost:${PORT}
+    📊 Base de datos: ${dbConectada ? 'PostgreSQL conectada' : '⚠️  NO CONECTADA - Verificar configuración'}
+    🔐 Autenticación: Activada
+    👥 Roles: Usuario Normal | Vocero | Admin
+    ========================================
+        `);
+    });
+}
+
+iniciarServidor().catch(err => {
+    console.error('Error fatal al iniciar el servidor:', err);
+    process.exit(1);
 });
