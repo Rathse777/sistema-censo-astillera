@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Sistema de Censo | Consejo Comunal La Astillera</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+        .card-stats {
+            border: none;
+            border-radius: 15px;
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+        .card-stats:hover {
+            transform: translateY(-5px);
+        }
+        .stat-icon {
+            font-size: 2.5rem;
+            opacity: 0.8;
+        }
+        .welcome-banner {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        footer {
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 1rem;
+            margin-top: 3rem;
+            border-radius: 10px;
+        }
+        @media (max-width: 768px) {
+            .welcome-banner h1 {
+                font-size: 1.5rem;
+            }
+            .card-stats {
+                margin-bottom: 1rem;
+            }
+        }
+        .btn-acceso-restringido {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+    <!-- ===== BARRA DE NAVEGACIÓN COMPLETA ===== -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-home me-2"></i>Censo La Astillera
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/"><i class="fas fa-chart-line"></i> Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/habitantes"><i class="fas fa-users"></i> Habitantes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/viviendas"><i class="fas fa-home"></i> Viviendas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/servicios"><i class="fas fa-box"></i> Servicios</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/solicitudes"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/notificaciones"><i class="fas fa-bullhorn"></i> Notificaciones</a>
+                    </li>
+                    <li class="nav-item" id="bitacoraMenu" style="display: none;">
+                        <a class="nav-link" href="/bitacora"><i class="fas fa-history"></i> Bitácora</a>
+                    </li>
+                    <li class="nav-item dropdown" id="userMenu">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" data-bs-toggle="dropdown">
+                            <i class="fas fa-user"></i> <span id="userName">Cargando...</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/perfil"><i class="fas fa-id-card"></i> Mi Perfil</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <!-- ===== FIN BARRA DE NAVEGACIÓN ===== -->
+
+    <div class="container mt-4">
+        <div class="welcome-banner text-center">
+            <i class="fas fa-chalkboard-user fa-3x text-primary mb-3"></i>
+            <h1>Sistema de Registro</h1>
+            <h4 class="text-muted">Consejo Comunal de la Calle "La Astillera"</h4>
+            <p class="mt-3">Digitalización y Gestión Eficiente del Censo Poblacional</p>
+            <hr>
+            <div class="row mt-4">
+                <div class="col-md-4">
+                    <i class="fas fa-mobile-alt fa-2x text-success"></i>
+                    <p class="mt-2">Diseño Responsive<br><small>Accesible desde tu celular</small></p>
+                </div>
+                <div class="col-md-4">
+                    <i class="fas fa-database fa-2x text-info"></i>
+                    <p class="mt-2">Base de datos Centralizada<br><small>Información segura y actualizada</small></p>
+                </div>
+                <div class="col-md-4">
+                    <i class="fas fa-chart-bar fa-2x text-warning"></i>
+                    <p class="mt-2">Reportes en Tiempo Real<br><small>Toma de decisiones efectiva</small></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row" id="statsContainer">
+            <div class="col-md-3 col-6">
+                <div class="card card-stats bg-primary text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title">Viviendas</h6>
+                                <h2 class="mb-0" id="totalViviendas">-</h2>
+                            </div>
+                            <i class="fas fa-home stat-icon"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="card card-stats bg-success text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title">Habitantes</h6>
+                                <h2 class="mb-0" id="totalHabitantes">-</h2>
+                            </div>
+                            <i class="fas fa-users stat-icon"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="card card-stats bg-warning text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title">Niños (0-11)</h6>
+                                <h2 class="mb-0" id="totalNinos">-</h2>
+                            </div>
+                            <i class="fas fa-child stat-icon"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="card card-stats bg-danger text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title">Adultos Mayores</h6>
+                                <h2 class="mb-0" id="totalAdultosMayores">-</h2>
+                            </div>
+                            <i class="fas fa-hand-holding-heart stat-icon"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card shadow">
+                    <div class="card-header bg-info text-white">
+                        <i class="fas fa-info-circle"></i> Beneficios Disponibles
+                    </div>
+                    <div class="card-body" id="serviciosList">
+                        <div class="text-center">Cargando servicios...</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card shadow">
+                    <div class="card-header bg-secondary text-white">
+                        <i class="fas fa-bullhorn"></i> Avisos del Consejo Comunal
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-success">
+                            <i class="fas fa-calendar-check"></i> <strong>Próxima entrega de CLAP:</strong> 15 de cada mes
+                        </div>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-fire"></i> <strong>Bombona de Gas:</strong> Solicitar en cuanto se especifique por el grupo
+                        </div>
+                        <div class="alert alert-info">
+                            <i class="fas fa-gift"></i> <strong>Juguetes Navideños:</strong> Registro de niños actualizado hasta noviembre
+                        </div>
+                        <hr>
+                        <div id="userInfoPanel">
+                            <p class="text-muted small">
+                                <i class="fas fa-sync-alt"></i> Recuerda actualizar tus datos mensualmente para mantenerte activo en el sistema.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center">
+        <div class="container">
+            <p>&copy; 2026 - Sistema de Información Gerencial | Instituto Universitario de Tecnología "Dr. Cristóbal Mendoza"</p>
+            <p>Desarrollado por: Rathseli Romero</p>
+        </div>
+    </footer>
+
+    <!-- Toast Container para notificaciones flotantes -->
+    <div id="toastContainer" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999;"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_URL = window.location.origin;
+        let token = localStorage.getItem('token');
+        let usuarioActual = null;
+
+        // Verificar sesión
+        async function verificarSesion() {
+            if (!token) {
+                window.location.href = '/login';
+                return false;
+            }
+            try {
+                const response = await fetch('/api/auth/verificar', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                if (!response.ok || !data.authenticated) {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('usuario');
+                    window.location.href = '/login';
+                    return false;
+                }
+                usuarioActual = data.usuario;
+                localStorage.setItem('usuario', JSON.stringify(usuarioActual));
+                document.getElementById('userName').textContent = usuarioActual.nombre_usuario;
+                if (usuarioActual.nivel === 3) {
+                    document.getElementById('bitacoraMenu').style.display = 'block';
+                }
+                return true;
+            } catch (error) {
+                console.error('Error verificando sesión:', error);
+                window.location.href = '/login';
+                return false;
+            }
+        }
+
+        // Cargar estadísticas
+        async function cargarEstadisticas() {
+            if (!token) return;
+            try {
+                const response = await fetch('/api/estadisticas', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) throw new Error('Error al cargar estadísticas');
+                const data = await response.json();
+                document.getElementById('totalViviendas').textContent = data.total_viviendas;
+                document.getElementById('totalHabitantes').textContent = data.total_habitantes;
+                document.getElementById('totalNinos').textContent = data.ninos;
+                document.getElementById('totalAdultosMayores').textContent = data.adultos_mayores;
+            } catch (error) {
+                console.error('Error cargando estadísticas:', error);
+            }
+        }
+
+        // Cargar servicios
+        async function cargarServicios() {
+            if (!token) return;
+            try {
+                const response = await fetch('/api/servicios', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) throw new Error('Error al cargar servicios');
+                const servicios = await response.json();
+                const container = document.getElementById('serviciosList');
+                if (servicios.length === 0) {
+                    container.innerHTML = '<p class="text-muted">No hay servicios registrados</p>';
+                    return;
+                }
+                let html = '<ul class="list-group">';
+                servicios.forEach(servicio => {
+                    html += `
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            ${servicio.nombre_servicio}
+                            <span class="badge bg-primary rounded-pill">${servicio.criterio_edad_min}-${servicio.criterio_edad_max} años</span>
+                        </li>
+                    `;
+                });
+                html += '</ul>';
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Error cargando servicios:', error);
+            }
+        }
+
+        // Cargar notificaciones como toast flotante
+        async function cargarNotificacionesFlotantes() {
+            if (!token) return;
+            try {
+                const response = await fetch('/api/notificaciones', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) return;
+                const notificaciones = await response.json();
+                
+                const toastContainer = document.getElementById('toastContainer');
+                if (!toastContainer || notificaciones.length === 0) return;
+                
+                // Verificar si ya mostramos estas notificaciones
+                const vistas = JSON.parse(localStorage.getItem('notificaciones_vistas') || '[]');
+                
+                notificaciones.forEach(n => {
+                    if (!vistas.includes(n.id_notificacion)) {
+                        const toast = document.createElement('div');
+                        toast.className = `toast align-items-center text-white bg-${n.tipo} border-0 mb-2`;
+                        toast.setAttribute('role', 'alert');
+                        toast.setAttribute('aria-live', 'assertive');
+                        toast.setAttribute('aria-atomic', 'true');
+                        toast.style.minWidth = '280px';
+                        toast.style.maxWidth = '350px';
+                        
+                        toast.innerHTML = `
+                            <div class="d-flex">
+                                <div class="toast-body">
+                                    <strong>${n.titulo}</strong>
+                                    <p class="mb-0 small">${n.mensaje.substring(0, 80)}${n.mensaje.length > 80 ? '...' : ''}</p>
+                                </div>
+                                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                            </div>
+                        `;
+                        
+                        toastContainer.appendChild(toast);
+                        const bsToast = new bootstrap.Toast(toast, { delay: 5000 });
+                        bsToast.show();
+                        
+                        toast.addEventListener('hidden.bs.toast', () => {
+                            toast.remove();
+                        });
+                        
+                        // Marcar como vista
+                        vistas.push(n.id_notificacion);
+                    }
+                });
+                
+                // Guardar las notificaciones vistas
+                localStorage.setItem('notificaciones_vistas', JSON.stringify(vistas.slice(-50)));
+                
+            } catch (error) {
+                console.error('Error cargando notificaciones:', error);
+            }
+        }
+
+        // Logout
+        document.getElementById('logoutBtn')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.removeItem('token');
+            localStorage.removeItem('usuario');
+            localStorage.removeItem('notificaciones_vistas');
+            window.location.href = '/login';
+        });
+
+        // Inicialización
+        async function init() {
+            const autenticado = await verificarSesion();
+            if (autenticado) {
+                cargarEstadisticas();
+                cargarServicios();
+                cargarNotificacionesFlotantes();
+                // Actualizar cada 30 segundos
+                setInterval(cargarEstadisticas, 30000);
+                setInterval(cargarNotificacionesFlotantes, 60000);
+            }
+        }
+        init();
+    </script>
+</body>
+</html>

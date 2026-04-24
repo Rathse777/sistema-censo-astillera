@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión | Sistema Censo La Astillera</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .login-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+            width: 100%;
+            max-width: 500px;
+        }
+        .login-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        .login-header i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .login-body {
+            padding: 2rem;
+        }
+        .btn-login, .btn-register {
+            width: 100%;
+            padding: 12px;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        .btn-login {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+        }
+        .btn-register {
+            background: #28a745;
+            border: none;
+            color: white;
+        }
+        .btn-login:hover, .btn-register:hover {
+            transform: translateY(-2px);
+        }
+        .nav-tabs .nav-link {
+            color: #667eea;
+            font-weight: bold;
+        }
+        .nav-tabs .nav-link.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="login-header">
+            <i class="fas fa-home"></i>
+            <h2>Sistema de Censo</h2>
+            <p class="mb-0">Consejo Comunal "La Astillera"</p>
+        </div>
+        
+        <div class="login-body">
+            <ul class="nav nav-tabs mb-4" id="loginTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#loginPanel" type="button" role="tab">
+                        <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#registerPanel" type="button" role="tab">
+                        <i class="fas fa-user-plus"></i> Registrarse
+                    </button>
+                </li>
+            </ul>
+            
+            <div class="tab-content">
+                <!-- PANEL DE LOGIN -->
+                <div class="tab-pane fade show active" id="loginPanel" role="tabpanel">
+                    <div id="loginAlert"></div>
+                    <form id="loginForm">
+                        <div class="mb-3">
+                            <label class="form-label"><i class="fas fa-user"></i> Usuario o Email</label>
+                            <input type="text" class="form-control" id="login_usuario" required autofocus>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label"><i class="fas fa-lock"></i> Contraseña</label>
+                            <input type="password" class="form-control" id="login_contrasena" required>
+                        </div>
+                        <button type="submit" class="btn btn-login mb-2">
+                            <i class="fas fa-sign-in-alt"></i> Ingresar
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- PANEL DE REGISTRO -->
+                <div class="tab-pane fade" id="registerPanel" role="tabpanel">
+                    <div id="registerAlert"></div>
+                    <form id="registerForm">
+                        <div class="mb-3">
+                            <label class="form-label"><i class="fas fa-user"></i> Nombre de Usuario *</label>
+                            <input type="text" class="form-control" id="reg_nombre_usuario" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label"><i class="fas fa-envelope"></i> Email *</label>
+                            <input type="email" class="form-control" id="reg_email" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label"><i class="fas fa-id-card"></i> Cédula *</label>
+                            <input type="text" class="form-control" id="reg_cedula" required placeholder="V-12345678">
+                            <small class="text-muted">Formato: V-12345678 o solo números</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label"><i class="fas fa-user-circle"></i> Nombre Completo *</label>
+                            <input type="text" class="form-control" id="reg_nombre_completo" required placeholder="Juan Pérez Gómez">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label"><i class="fas fa-lock"></i> Contraseña *</label>
+                            <input type="password" class="form-control" id="reg_contrasena" required>
+                            <small class="text-muted">Mínimo 6 caracteres</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label"><i class="fas fa-lock"></i> Confirmar Contraseña *</label>
+                            <input type="password" class="form-control" id="reg_confirmar_contrasena" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-key"></i> Clave Maestra (Opcional)
+                            </label>
+                            <input type="password" class="form-control" id="clave_maestra" placeholder="Solo si es vocero o admin">
+                            <small class="text-muted text-info">
+                                <i class="fas fa-info-circle"></i> 
+                                Sin clave = Usuario Normal | Clave especial = Vocero/Admin
+                            </small>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-register">
+                            <i class="fas fa-user-plus"></i> Registrarse
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <hr class="my-4">
+            <div class="text-center text-muted small">
+                <i class="fas fa-shield-alt"></i> Sistema protegido<br>
+                Datos personales protegidos según ley
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // =====================================================
+        // FUNCIÓN PARA MOSTRAR ALERTAS
+        // =====================================================
+        function mostrarAlerta(containerId, mensaje, tipo) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `
+                <div class="alert alert-${tipo} alert-dismissible fade show" role="alert">
+                    <i class="fas fa-${tipo === 'danger' ? 'exclamation-triangle' : 'check-circle'}"></i>
+                    ${mensaje}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            setTimeout(() => {
+                const alert = container.querySelector('.alert');
+                if (alert) alert.remove();
+            }, 5000);
+        }
+
+        // =====================================================
+        // LOGIN
+        // =====================================================
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const usuario = document.getElementById('login_usuario').value.trim();
+            const contrasena = document.getElementById('login_contrasena').value;
+            
+            if (!usuario || !contrasena) {
+                mostrarAlerta('loginAlert', 'Complete todos los campos', 'danger');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usuario, contrasena })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('usuario', JSON.stringify(data.usuario));
+                    window.location.href = '/';
+                } else {
+                    mostrarAlerta('loginAlert', data.error || 'Credenciales incorrectas', 'danger');
+                }
+            } catch (error) {
+                console.error('Error en login:', error);
+                mostrarAlerta('loginAlert', 'Error de conexión al servidor', 'danger');
+            }
+        });
+        
+        // =====================================================
+        // REGISTRO
+        // =====================================================
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const alertContainer = document.getElementById('registerAlert');
+            alertContainer.innerHTML = '';
+            
+            const nombre_usuario = document.getElementById('reg_nombre_usuario').value.trim();
+            const email = document.getElementById('reg_email').value.trim();
+            const cedula = document.getElementById('reg_cedula').value.trim();
+            const nombre_completo = document.getElementById('reg_nombre_completo').value.trim();
+            const contrasena = document.getElementById('reg_contrasena').value;
+            const confirmar = document.getElementById('reg_confirmar_contrasena').value;
+            const clave_maestra = document.getElementById('clave_maestra').value.trim();
+            
+            // Validaciones
+            if (!nombre_usuario || nombre_usuario.length < 3) {
+                mostrarAlerta('registerAlert', 'El nombre de usuario debe tener al menos 3 caracteres', 'danger');
+                return;
+            }
+            if (!email || !email.includes('@')) {
+                mostrarAlerta('registerAlert', 'Ingrese un email válido', 'danger');
+                return;
+            }
+            if (!cedula) {
+                mostrarAlerta('registerAlert', 'La cédula es requerida', 'danger');
+                return;
+            }
+            if (!nombre_completo) {
+                mostrarAlerta('registerAlert', 'El nombre completo es requerido', 'danger');
+                return;
+            }
+            if (!contrasena || contrasena.length < 6) {
+                mostrarAlerta('registerAlert', 'La contraseña debe tener al menos 6 caracteres', 'danger');
+                return;
+            }
+            if (contrasena !== confirmar) {
+                mostrarAlerta('registerAlert', 'Las contraseñas no coinciden', 'danger');
+                return;
+            }
+            
+            // Limpiar cédula
+            const cedulaLimpia = cedula.replace(/[^0-9]/g, '');
+            if (cedulaLimpia.length < 6) {
+                mostrarAlerta('registerAlert', 'Cédula inválida (mínimo 6 dígitos)', 'danger');
+                return;
+            }
+            
+            // Mostrar loading
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registrando...';
+            submitBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/auth/registrar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        nombre_usuario,
+                        email,
+                        cedula: cedulaLimpia,
+                        nombre_completo,
+                        contrasena,
+                        clave_maestra
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    mostrarAlerta('registerAlert', 
+                        `¡Registro exitoso como ${result.rol_asignado || 'usuario'}! Redirigiendo...`, 
+                        'success');
+                    
+                    document.getElementById('registerForm').reset();
+                    
+                    // Redirigir al login después de 2 segundos
+                    setTimeout(() => {
+                        document.getElementById('login-tab').click();
+                        document.getElementById('registerAlert').innerHTML = '';
+                        document.getElementById('login_usuario').value = nombre_usuario;
+                    }, 2000);
+                } else {
+                    mostrarAlerta('registerAlert', result.error || 'Error al registrarse', 'danger');
+                }
+            } catch (error) {
+                console.error('Error en registro:', error);
+                mostrarAlerta('registerAlert', 'Error de conexión al servidor', 'danger');
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

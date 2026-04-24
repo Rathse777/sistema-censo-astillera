@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notificaciones | Sistema Censo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- ===== BARRA DE NAVEGACIÓN COMPLETA ===== -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/"><i class="fas fa-home"></i> Censo La Astillera</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/"><i class="fas fa-chart-line"></i> Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/habitantes"><i class="fas fa-users"></i> Habitantes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/viviendas"><i class="fas fa-home"></i> Viviendas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/servicios"><i class="fas fa-box"></i> Servicios</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/solicitudes"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/notificaciones"><i class="fas fa-bullhorn"></i> Notificaciones</a>
+                    </li>
+                    <li class="nav-item" id="bitacoraMenu" style="display: none;">
+                        <a class="nav-link" href="/bitacora"><i class="fas fa-history"></i> Bitácora</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="fas fa-user"></i> <span id="userName">Usuario</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/perfil"><i class="fas fa-id-card"></i> Mi Perfil</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <!-- ===== FIN BARRA DE NAVEGACIÓN ===== -->
+
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-bullhorn"></i> Avisos y Notificaciones</h2>
+            <button class="btn btn-primary" id="nuevaNotificacionBtn" data-bs-toggle="modal" data-bs-target="#modalNotificacion" style="display: none;">
+                <i class="fas fa-plus"></i> Crear Aviso
+            </button>
+        </div>
+
+        <div id="alertContainer"></div>
+
+        <!-- Panel de notificaciones -->
+        <div class="row" id="notificacionesContainer">
+            <div class="col-12 text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+                <p class="mt-2 text-muted">Cargando avisos...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Crear/Ver Notificación -->
+    <div class="modal fade" id="modalNotificacion" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="fas fa-plus-circle"></i> Nuevo Aviso</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="notificacionForm">
+                        <div class="mb-3">
+                            <label class="form-label"><i class="fas fa-heading"></i> Título *</label>
+                            <input type="text" class="form-control" id="titulo" required placeholder="Ej: Entrega de CLAP este sábado">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label"><i class="fas fa-align-left"></i> Mensaje *</label>
+                            <textarea class="form-control" id="mensaje" rows="4" required placeholder="Escribe el mensaje detallado..."></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label"><i class="fas fa-tag"></i> Tipo de Aviso</label>
+                                <select class="form-control" id="tipo">
+                                    <option value="info">ℹ️ Informativo</option>
+                                    <option value="success">✅ Éxito</option>
+                                    <option value="warning">⚠️ Advertencia</option>
+                                    <option value="danger">🚨 Urgente</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label"><i class="fas fa-flag"></i> Prioridad</label>
+                                <select class="form-control" id="prioridad">
+                                    <option value="1">Normal</option>
+                                    <option value="2">Media</option>
+                                    <option value="3">Alta</option>
+                                    <option value="4">Urgente</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label"><i class="fas fa-calendar-alt"></i> Fecha de Expiración (opcional)</label>
+                            <input type="date" class="form-control" id="fecha_expiracion">
+                            <small class="text-muted">El aviso se ocultará después de esta fecha</small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="btn btn-primary" id="guardarNotificacionBtn">
+                        <i class="fas fa-paper-plane"></i> Publicar Aviso
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_URL = window.location.origin;
+        let token = localStorage.getItem('token');
+        let usuarioActual = null;
+
+        // Verificar sesión
+        async function verificarSesion() {
+            if (!token) {
+                window.location.href = '/login';
+                return false;
+            }
+            try {
+                const response = await fetch('/api/auth/verificar', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                if (!response.ok || !data.authenticated) {
+                    localStorage.removeItem('token');
+                    window.location.href = '/login';
+                    return false;
+                }
+                usuarioActual = data.usuario;
+                localStorage.setItem('usuario', JSON.stringify(usuarioActual));
+                document.getElementById('userName').textContent = usuarioActual.nombre_usuario;
+                
+                // Mostrar botones según rol
+                if (usuarioActual.nivel >= 2) {
+                    document.getElementById('nuevaNotificacionBtn').style.display = 'block';
+                }
+                if (usuarioActual.nivel >= 3) {
+                    document.getElementById('bitacoraMenu').style.display = 'block';
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('Error verificando sesión:', error);
+                window.location.href = '/login';
+                return false;
+            }
+        }
+
+        // Cargar notificaciones activas
+        async function cargarNotificaciones() {
+            try {
+                const response = await fetch('/api/notificaciones', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) throw new Error('Error al cargar');
+                
+                const notificaciones = await response.json();
+                const container = document.getElementById('notificacionesContainer');
+                const esEditor = usuarioActual?.nivel >= 2;
+                
+                if (notificaciones.length === 0) {
+                    container.innerHTML = `
+                        <div class="col-12">
+                            <div class="alert alert-info text-center">
+                                <i class="fas fa-info-circle fa-2x mb-2"></i>
+                                <p class="mb-0">No hay avisos activos en este momento.</p>
+                                <small>El Consejo Comunal publicará aquí información importante.</small>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = notificaciones.map(n => `
+                    <div class="col-md-6 mb-3">
+                        <div class="card border-${n.tipo} h-100 shadow-sm">
+                            <div class="card-header bg-${n.tipo} text-white d-flex justify-content-between align-items-center">
+                                <strong>
+                                    ${n.prioridad >= 3 ? '🔴 ' : ''}
+                                    ${n.titulo}
+                                </strong>
+                                <small>${new Date(n.fecha_creacion).toLocaleDateString('es-VE', { day: 'numeric', month: 'short', year: 'numeric' })}</small>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">${n.mensaje}</p>
+                            </div>
+                            <div class="card-footer bg-light">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">
+                                        <i class="fas fa-user-circle"></i> 
+                                        ${n.creador_nombre || 'Consejo Comunal'}
+                                    </small>
+                                    <div>
+                                        ${n.fecha_expiracion ? `<span class="badge bg-warning text-dark" title="Expira"><i class="fas fa-clock"></i> ${new Date(n.fecha_expiracion).toLocaleDateString()}</span>` : ''}
+                                        ${esEditor ? `
+                                            <button class="btn btn-sm btn-outline-danger ms-1" onclick="eliminarNotificacion(${n.id_notificacion})" title="Eliminar aviso">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error cargando notificaciones:', error);
+                document.getElementById('notificacionesContainer').innerHTML = `
+                    <div class="col-12">
+                        <div class="alert alert-danger">❌ Error al cargar los avisos. Intente nuevamente.</div>
+                    </div>
+                `;
+            }
+        }
+
+        // Eliminar notificación (solo admin)
+        window.eliminarNotificacion = async function(id) {
+            if (!confirm('¿Eliminar este aviso?')) return;
+            
+            try {
+                const response = await fetch(`/api/notificaciones/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    mostrarAlerta('Aviso eliminado correctamente', 'success');
+                    cargarNotificaciones();
+                } else {
+                    const error = await response.json();
+                    mostrarAlerta(error.error || 'Error al eliminar', 'danger');
+                }
+            } catch (error) {
+                mostrarAlerta('Error al eliminar aviso', 'danger');
+            }
+        };
+
+        // Publicar nueva notificación
+        async function publicarNotificacion() {
+            const titulo = document.getElementById('titulo').value.trim();
+            const mensaje = document.getElementById('mensaje').value.trim();
+            
+            if (!titulo || !mensaje) {
+                mostrarAlerta('Título y mensaje son requeridos', 'warning');
+                return;
+            }
+            
+            const data = {
+                titulo: titulo,
+                mensaje: mensaje,
+                tipo: document.getElementById('tipo').value,
+                prioridad: parseInt(document.getElementById('prioridad').value),
+                fecha_expiracion: document.getElementById('fecha_expiracion').value || null
+            };
+            
+            try {
+                const response = await fetch('/api/notificaciones', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('modalNotificacion')).hide();
+                    limpiarFormNotificacion();
+                    cargarNotificaciones();
+                    mostrarAlerta('Aviso publicado exitosamente', 'success');
+                } else {
+                    const error = await response.json();
+                    mostrarAlerta(error.error || 'Error al publicar', 'danger');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarAlerta('Error de conexión', 'danger');
+            }
+        }
+
+        function limpiarFormNotificacion() {
+            document.getElementById('notificacionForm').reset();
+            document.getElementById('tipo').value = 'info';
+            document.getElementById('prioridad').value = '1';
+        }
+
+        function mostrarAlerta(mensaje, tipo) {
+            const container = document.getElementById('alertContainer');
+            container.innerHTML = `
+                <div class="alert alert-${tipo} alert-dismissible fade show" role="alert">
+                    <i class="fas fa-${tipo === 'success' ? 'check-circle' : (tipo === 'danger' ? 'exclamation-triangle' : 'info-circle')}"></i>
+                    ${mensaje}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            setTimeout(() => {
+                const alert = container.querySelector('.alert');
+                if (alert) alert.remove();
+            }, 5000);
+        }
+
+        // Event Listeners
+        document.getElementById('guardarNotificacionBtn').addEventListener('click', publicarNotificacion);
+        document.getElementById('logoutBtn')?.addEventListener('click', () => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('usuario');
+            window.location.href = '/login';
+        });
+
+        // Limpiar formulario al abrir modal
+        document.getElementById('modalNotificacion').addEventListener('show.bs.modal', limpiarFormNotificacion);
+
+        // Inicializar
+        async function init() {
+            if (await verificarSesion()) {
+                cargarNotificaciones();
+                // Actualizar cada 2 minutos
+                setInterval(cargarNotificaciones, 120000);
+            }
+        }
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil | Sistema Censo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/"><i class="fas fa-home"></i> Censo La Astillera</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="/">Inicio</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/habitantes">Habitantes</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/viviendas">Viviendas</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/servicios">Servicios</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/solicitudes">Solicitudes</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/bitacora">Bitácora</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" data-bs-toggle="dropdown">
+                            <i class="fas fa-user"></i> <span id="userName">Usuario</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/perfil"><i class="fas fa-id-card"></i> Mi Perfil</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card shadow text-center">
+                    <div class="card-body">
+                        <i class="fas fa-user-circle fa-5x text-primary mb-3"></i>
+                        <h4 id="perfilNombreCompleto">-</h4>
+                        <p class="text-muted">@<span id="perfilUsuario">-</span></p>
+                        <hr>
+                        <p><i class="fas fa-tag"></i> Rol: <span id="perfilRol" class="badge bg-primary">-</span></p>
+                        <p><i class="fas fa-envelope"></i> Email: <span id="perfilEmail">-</span></p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <i class="fas fa-key"></i> Cambiar Contraseña
+                    </div>
+                    <div class="card-body">
+                        <div id="alertContainer"></div>
+                        <form id="cambiarPasswordForm">
+                            <div class="mb-3">
+                                <label>Contraseña Actual</label>
+                                <input type="password" class="form-control" id="contrasena_actual" required>
+                            </div>
+                            <div class="mb-3">
+                                <label>Nueva Contraseña</label>
+                                <input type="password" class="form-control" id="contrasena_nueva" required>
+                                <small class="text-muted">Mínimo 6 caracteres</small>
+                            </div>
+                            <div class="mb-3">
+                                <label>Confirmar Nueva Contraseña</label>
+                                <input type="password" class="form-control" id="confirmar_contrasena" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Actualizar Contraseña
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.origin;
+        let token = localStorage.getItem('token');
+        
+        function verificarSesion() {
+            if (!token) {
+                window.location.href = '/login';
+                return false;
+            }
+            return true;
+        }
+        
+        function cargarPerfil() {
+            const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
+            document.getElementById('perfilNombreCompleto').textContent = usuario.nombre_completo || usuario.nombre_usuario;
+            document.getElementById('perfilUsuario').textContent = usuario.nombre_usuario;
+            document.getElementById('perfilRol').textContent = usuario.rol || 'consulta';
+            document.getElementById('perfilEmail').textContent = usuario.email || 'No registrado';
+            document.getElementById('userName').textContent = usuario.nombre_usuario;
+        }
+        
+        document.getElementById('cambiarPasswordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const nueva = document.getElementById('contrasena_nueva').value;
+            const confirmar = document.getElementById('confirmar_contrasena').value;
+            
+            if (nueva !== confirmar) {
+                mostrarAlerta('Las contraseñas no coinciden', 'danger');
+                return;
+            }
+            
+            if (nueva.length < 6) {
+                mostrarAlerta('La contraseña debe tener al menos 6 caracteres', 'danger');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/auth/cambiar-contrasena', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        contrasena_actual: document.getElementById('contrasena_actual').value,
+                        contrasena_nueva: nueva
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    mostrarAlerta('Contraseña actualizada correctamente', 'success');
+                    document.getElementById('cambiarPasswordForm').reset();
+                } else {
+                    mostrarAlerta(data.error || 'Error al cambiar contraseña', 'danger');
+                }
+            } catch (error) {
+                mostrarAlerta('Error de conexión', 'danger');
+            }
+        });
+        
+        function mostrarAlerta(mensaje, tipo) {
+            const container = document.getElementById('alertContainer');
+            container.innerHTML = `
+                <div class="alert alert-${tipo} alert-dismissible fade show" role="alert">
+                    ${mensaje}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            setTimeout(() => {
+                const alert = container.querySelector('.alert');
+                if (alert) alert.remove();
+            }, 5000);
+        }
+        
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('usuario');
+            window.location.href = '/login';
+        });
+        
+        if (verificarSesion()) {
+            cargarPerfil();
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

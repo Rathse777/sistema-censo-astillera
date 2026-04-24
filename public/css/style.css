@@ -1,0 +1,38 @@
+/* Estilos adicionales para mejorar la experiencia móvil */
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.85rem;
+    }
+    
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.7rem;
+    }
+    
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+    
+    .card-stats h2 {
+        font-size: 1.5rem;
+    }
+}
+
+/* Animaciones suaves */
+.card-stats {
+    transition: all 0.3s ease;
+}
+
+.btn {
+    transition: all 0.2s ease;
+}
+
+/* Mejoras de contraste para usuarios mayores */
+.badge {
+    font-weight: 500;
+}
+
+/* Estilo para inputs en móvil */
+input, select, textarea {
+    font-size: 16px !important; /* Previene zoom en iOS */
+}

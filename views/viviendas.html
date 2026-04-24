@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Viviendas | Sistema Censo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- ===== BARRA DE NAVEGACIÓN COMPLETA ===== -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/"><i class="fas fa-home"></i> Censo La Astillera</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/"><i class="fas fa-chart-line"></i> Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/habitantes"><i class="fas fa-users"></i> Habitantes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/viviendas"><i class="fas fa-home"></i> Viviendas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/servicios"><i class="fas fa-box"></i> Servicios</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/solicitudes"><i class="fas fa-clipboard-list"></i> Solicitudes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/notificaciones"><i class="fas fa-bullhorn"></i> Notificaciones</a>
+                    </li>
+                    <li class="nav-item" id="bitacoraMenu" style="display: none;">
+                        <a class="nav-link" href="/bitacora"><i class="fas fa-history"></i> Bitácora</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="fas fa-user"></i> <span id="userName">Usuario</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/perfil"><i class="fas fa-id-card"></i> Mi Perfil</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <!-- ===== FIN BARRA DE NAVEGACIÓN ===== -->
+
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-home"></i> Gestión de Viviendas</h2>
+            <button class="btn btn-primary" id="nuevoViviendaBtn" data-bs-toggle="modal" data-bs-target="#modalVivienda" style="display: none;">
+                <i class="fas fa-plus"></i> Nueva Vivienda
+            </button>
+        </div>
+
+        <div id="alertContainer"></div>
+
+        <div class="card shadow">
+            <div class="card-body">
+                <input type="text" id="searchInput" class="form-control mb-3" placeholder="🔍 Buscar por número de casa o dirección...">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>N° Casa</th>
+                                <th>Dirección</th>
+                                <th>Referencia</th>
+                                <th>Tenencia</th>
+                                <th>Condición</th>
+                                <th>Servicios</th>
+                                <th>Habitantes</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="viviendasTable">
+                            <tr><td colspan="8" class="text-center">Cargando datos...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Vivienda -->
+    <div class="modal fade" id="modalVivienda" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="fas fa-building"></i> <span id="modalTitle">Registrar Vivienda</span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="viviendaForm">
+                        <input type="hidden" id="editViviendaId">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label>Número de Casa *</label>
+                                <input type="text" class="form-control" id="nro_casa" required placeholder="Ej: 123, 45-A">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label>Tipo de Tenencia *</label>
+                                <select class="form-control" id="tipo_tenencia" required>
+                                    <option value="Propia">Propia</option>
+                                    <option value="Alquilada">Alquilada</option>
+                                    <option value="Compartida">Compartida</option>
+                                    <option value="Traspasada">Traspasada</option>
+                                    <option value="Prestada">Prestada</option>
+                                </select>
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label>Dirección *</label>
+                                <textarea class="form-control" id="direccion" required rows="2" placeholder="Calle, sector, puntos de referencia"></textarea>
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label>Referencia (opcional)</label>
+                                <textarea class="form-control" id="referencia" rows="2" placeholder="Cerca de..., color de la casa, etc."></textarea>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label>Condición Infraestructura</label>
+                                <select class="form-control" id="condicion_infra">
+                                    <option value="Buena">Buena</option>
+                                    <option value="Regular">Regular</option>
+                                    <option value="Mala">Mala</option>
+                                    <option value="En Construcción">En Construcción</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label>N° Habitaciones</label>
+                                <input type="number" class="form-control" id="num_habitaciones" value="1" min="1">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label>N° Baños</label>
+                                <input type="number" class="form-control" id="num_baños" value="1" min="0">
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label>Servicios Básicos</label>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="tiene_agua" checked>
+                                            <label class="form-check-label">💧 Agua Potable</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="tiene_luz" checked>
+                                            <label class="form-check-label">⚡ Electricidad</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="tiene_gas" checked>
+                                            <label class="form-check-label">🔥 Gas Doméstico</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label>Observaciones</label>
+                                <textarea class="form-control" id="observaciones" rows="2" placeholder="Información adicional sobre la vivienda"></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="btn btn-primary" id="guardarViviendaBtn">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_URL = window.location.origin;
+        let token = localStorage.getItem('token');
+        let usuarioActual = null;
+
+        // Verificar sesión
+        async function verificarSesion() {
+            if (!token) {
+                window.location.href = '/login';
+                return false;
+            }
+            try {
+                const response = await fetch('/api/auth/verificar', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                if (!response.ok || !data.authenticated) {
+                    localStorage.removeItem('token');
+                    window.location.href = '/login';
+                    return false;
+                }
+                usuarioActual = data.usuario;
+                localStorage.setItem('usuario', JSON.stringify(usuarioActual));
+                document.getElementById('userName').textContent = usuarioActual.nombre_usuario;
+                
+                // Mostrar botones y menú según rol
+                const esEditor = usuarioActual.nivel >= 2;
+                if (esEditor) {
+                    document.getElementById('nuevoViviendaBtn').style.display = 'block';
+                }
+                if (usuarioActual.nivel >= 3) {
+                    document.getElementById('bitacoraMenu').style.display = 'block';
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('Error verificando sesión:', error);
+                window.location.href = '/login';
+                return false;
+            }
+        }
+
+        // Cargar viviendas
+        async function cargarViviendas() {
+            try {
+                const response = await fetch('/api/viviendas', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const viviendas = await response.json();
+                const tbody = document.getElementById('viviendasTable');
+                const esEditor = usuarioActual?.nivel >= 2;
+                
+                if (viviendas.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" class="text-center">No hay viviendas registradas</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = viviendas.map(v => `
+                    <tr>
+                        <td><strong>${v.nro_casa}</strong></td>
+                        <td>${v.direccion?.substring(0, 40)}${v.direccion?.length > 40 ? '...' : ''}</td>
+                        <td>${v.referencia?.substring(0, 30) || '-'}</td>
+                        <td><span class="badge bg-info">${v.tipo_tenencia}</span></td>
+                        <td><span class="badge ${v.condicion_infra === 'Buena' ? 'bg-success' : (v.condicion_infra === 'Mala' ? 'bg-danger' : 'bg-warning')}">${v.condicion_infra}</span></td>
+                        <td>
+                            ${v.tiene_agua ? '💧' : '🚫'} ${v.tiene_luz ? '⚡' : '🚫'} ${v.tiene_gas ? '🔥' : '🚫'}
+                        </td>
+                        <td><span class="badge bg-secondary">${v.total_habitantes || 0}</span></td>
+                        <td>
+                            ${esEditor ? `
+                                <button class="btn btn-sm btn-warning" onclick="editarVivienda(${v.id_vivienda})"><i class="fas fa-edit"></i></button>
+                                <button class="btn btn-sm btn-danger" onclick="eliminarVivienda(${v.id_vivienda})"><i class="fas fa-trash"></i></button>
+                            ` : `
+                                <button class="btn btn-sm btn-secondary" disabled title="Solo lectura"><i class="fas fa-eye"></i> Solo lectura</button>
+                            `}
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error cargando viviendas:', error);
+                document.getElementById('viviendasTable').innerHTML = '<tr><td colspan="8" class="text-center text-danger">Error al cargar datos</td></tr>';
+            }
+        }
+
+        // Editar vivienda
+        window.editarVivienda = async function(id) {
+            try {
+                const response = await fetch(`/api/viviendas/${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const v = await response.json();
+                
+                document.getElementById('modalTitle').textContent = 'Editar Vivienda';
+                document.getElementById('editViviendaId').value = v.id_vivienda;
+                document.getElementById('nro_casa').value = v.nro_casa;
+                document.getElementById('direccion').value = v.direccion;
+                document.getElementById('referencia').value = v.referencia || '';
+                document.getElementById('tipo_tenencia').value = v.tipo_tenencia;
+                document.getElementById('condicion_infra').value = v.condicion_infra || 'Buena';
+                document.getElementById('num_habitaciones').value = v.num_habitaciones || 1;
+                document.getElementById('num_baños').value = v.num_baños || 1;
+                document.getElementById('tiene_agua').checked = v.tiene_agua;
+                document.getElementById('tiene_luz').checked = v.tiene_luz;
+                document.getElementById('tiene_gas').checked = v.tiene_gas;
+                document.getElementById('observaciones').value = v.observaciones || '';
+                
+                new bootstrap.Modal(document.getElementById('modalVivienda')).show();
+            } catch (error) {
+                console.error('Error al cargar vivienda:', error);
+                alert('Error al cargar datos de la vivienda');
+            }
+        };
+
+        // Eliminar vivienda
+        window.eliminarVivienda = async function(id) {
+            if (confirm('¿Eliminar esta vivienda? Se eliminarán también sus habitantes.')) {
+                try {
+                    const response = await fetch(`/api/viviendas/${id}`, { 
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (response.ok) {
+                        mostrarAlerta('Vivienda eliminada correctamente', 'success');
+                        cargarViviendas();
+                    } else {
+                        const error = await response.json();
+                        mostrarAlerta(error.error || 'Error al eliminar', 'danger');
+                    }
+                } catch (error) {
+                    mostrarAlerta('Error al eliminar vivienda', 'danger');
+                }
+            }
+        };
+
+        // Guardar vivienda
+        async function guardarVivienda() {
+            const id = document.getElementById('editViviendaId').value;
+            const data = {
+                nro_casa: document.getElementById('nro_casa').value,
+                direccion: document.getElementById('direccion').value,
+                referencia: document.getElementById('referencia').value,
+                tipo_tenencia: document.getElementById('tipo_tenencia').value,
+                condicion_infra: document.getElementById('condicion_infra').value,
+                num_habitaciones: parseInt(document.getElementById('num_habitaciones').value),
+                num_baños: parseInt(document.getElementById('num_baños').value),
+                tiene_agua: document.getElementById('tiene_agua').checked,
+                tiene_luz: document.getElementById('tiene_luz').checked,
+                tiene_gas: document.getElementById('tiene_gas').checked,
+                observaciones: document.getElementById('observaciones').value
+            };
+            
+            const url = id ? `/api/viviendas/${id}` : '/api/viviendas';
+            const method = id ? 'PUT' : 'POST';
+            
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('modalVivienda')).hide();
+                    cargarViviendas();
+                    limpiarFormVivienda();
+                } else {
+                    const error = await response.json();
+                    alert(error.error || 'Error al guardar');
+                }
+            } catch (error) {
+                alert('Error de conexión');
+            }
+        }
+
+        function limpiarFormVivienda() {
+            document.getElementById('viviendaForm').reset();
+            document.getElementById('editViviendaId').value = '';
+            document.getElementById('modalTitle').textContent = 'Registrar Vivienda';
+            document.getElementById('tiene_agua').checked = true;
+            document.getElementById('tiene_luz').checked = true;
+            document.getElementById('tiene_gas').checked = true;
+            document.getElementById('num_habitaciones').value = 1;
+            document.getElementById('num_baños').value = 1;
+        }
+
+        function mostrarAlerta(mensaje, tipo) {
+            const container = document.getElementById('alertContainer');
+            container.innerHTML = `
+                <div class="alert alert-${tipo} alert-dismissible fade show">
+                    ${mensaje}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+        }
+
+        // Buscador
+        document.getElementById('searchInput')?.addEventListener('keyup', function(e) {
+            const term = e.target.value.toLowerCase();
+            document.querySelectorAll('#viviendasTable tr').forEach(row => {
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(term) ? '' : 'none';
+            });
+        });
+
+        // Event Listeners
+        document.getElementById('guardarViviendaBtn').addEventListener('click', guardarVivienda);
+        document.getElementById('logoutBtn')?.addEventListener('click', () => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('usuario');
+            window.location.href = '/login';
+        });
+
+        // Limpiar formulario cuando se abre el modal para nuevo registro
+        document.getElementById('modalVivienda').addEventListener('show.bs.modal', function(event) {
+            if (!document.getElementById('editViviendaId').value) {
+                limpiarFormVivienda();
+            }
+        });
+
+        // Inicializar
+        async function init() {
+            if (await verificarSesion()) {
+                cargarViviendas();
+            }
+        }
+        init();
+    </script>
+</body>
+</html>
