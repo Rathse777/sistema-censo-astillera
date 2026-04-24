@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
 const { Pool } = require('pg');
 const { verificarAutenticacion } = require('./middleware/auth');
+const PORT = process.env.PORT || 3000;
 
 dotenv.config();
 
