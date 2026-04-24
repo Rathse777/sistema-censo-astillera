@@ -65,6 +65,29 @@ app.use((req, res, next) => {
 app.locals.pool = pool;
 
 // =====================================================
+// CONFIGURACIÓN PARA NEON.TECH (si se detecta DATABASE_URL) y para Render (SSL)
+// =====================================================
+
+const pool = new Pool(
+  process.env.DATABASE_URL
+    ? {
+        connectionString: process.env.DATABASE_URL,
+        ssl: {
+          rejectUnauthorized: false, // Necesario para Neon
+        },
+      }
+    : {
+        host: process.env.DB_HOST,
+        port: process.env.DB_PORT,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_NAME,
+        max: 20,
+        idleTimeoutMillis: 30000,
+      }
+);
+
+// =====================================================
 // RUTA DE SALUD
 // =====================================================
 app.get('/health', async (req, res) => {
